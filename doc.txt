@@ -1,0 +1,371 @@
+Modules are golong new dependency management and it makes dependencies easier to manage,
+Module is collection of Go packages stored in a file tree and it is wiht go mod file with its root
+
+
+creating own multiplexer -> http.NewServerMux
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/greet", greet)
+	mux.HandleFunc("/getcustomers", getAllCustomers)
+	//starting server
+	fmt.Println("server starting at 8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
+
+
+gorilla mux: and ginjonik
+    mux.NewServeMux()  ->
+    powerful router  -> that simplifies the route definations
+
+ginjonik: additional features validation customized response..
+
+
+go.mod:  contains cryptographic hashess of the content specific module versions 
+it acts like lock file and it locks version information of the module  download 
+
+
+Hexagonal architecuture:
+     ┌────────────┐
+     │  Web UI    │
+     └────┬───────┘
+          │ (Adapter)
+          ▼
+     [ Inbound Port ] → Core Application Logic ← [ Outbound Port ]
+          ▲                                     ▲
+     ┌────┴────┐                         ┌──────┴─────┐
+     │  CLI    │                         │  Database  │
+     └─────────┘                         └────────────┘
+
+
+
+
+Connecting mysql:
+
+when giving client code ,when every running code it is creating pool ,that's we need to shift the code to our helper function.
+
+finc NewCustomerRepositryfb() CustomerRepositrydb{}
+
+
+
+
+
+Application Development:
+
+Write an API to retrive a customer by id?
+======================================
+Acceptance critertia:
+  part1:   - The URL should only accept numebr ids
+     - API should return the customer as a json object
+  part2:   - in case customer id does not exist , api should return http status code 404(Not Found)
+     - in case of an unexpected errro, api should return http status code 500(internal server error ) aong with error message
+
+Error handling:
+==============
+created a separete package for errors and using the function which are defined in the package when want to return  errror  like statusnotfound and internal server error like that
+
+Structure Loggging:
+===================
+Logging is cross cutting concern, which means it goes through all the layers of the application and its essential part of 
+application infrastructure thinks like error handling and security.
+
+uber Zap: for best Logging
+Blazing fast ,Structured,leveled Loggging in go.
+go get -u go.uber.org/zap
+
+
+configuration:
+zap.NewProduction()  --> return -> Log  type (*zap.logger),err
+zap.NewDevelopment()
+
+1.we used predifined configuration of NewProduction logger,
+     ->created a function Info() by passing parameters (message string,fields ...zap.Field)
+     used log.Info(message,fields)
+     ->created a function Debug() by passing parameters (message string,fields ...zap.Field)
+     used log.Debug(message,fields)
+     ->created a function Error() by passing parameters (message string,fields ...zap.Field)
+     used log.Error(message,fields)
+
+     write in main.go -> like logger.info()-> gives information like in json data 
+               1.level
+               2.  ts
+               3. caller
+               4. msg
+               ***
+               {"level":"info","ts":1748760587.8353708,"caller":"banking/main.go:12","msg":"starting our application...."}
+               ***
+          **here caller we make Log  as public that's why caller showing "banking/main.go"
+          making Log as private and check it will give "logger/logger"  we have to make banking/main.go
+
+          -> for that we need to add zap.AddCallerSkip(skip: 1) pass inside  our zap.NewProduction().
+
+          ***these are prefined parameter names ,if you want to change the prefined paramter 
+          name as want to need to create our own configuration ***
+     
+     2.creating our own configuration :
+          zap.NewProduction()  -> go inside this it calling the config := zap.NewProductionConfig() -> it is calling zap.NewProductionEncoderConfig() as encoderconfig
+
+          encoderconfig.TimeKey="timestamp"
+          encoderconfig.EncodeTime= zapcore.ISO8601TimeEncoder
+          encoderconfig.StackTrace=""
+          config.EncoderConfig=encoderconfig
+          => we need to build the our own configuration 
+              log,err := config.Build( zap.AddCallerSkip(skip: 1) )
+
+=> change the log.Println() with this logger.Error function to error data in json with info
+
+Benefits:
+🔥 High performance (zero allocations in hot paths)
+
+🧾 Structured logging using key-value pairs
+
+🧪 Leveled logs: Info, Debug, Error, etc.
+
+⚙️ Customizable encoder for formatting
+
+
+SQLX: General purpose extension to database/sql:
+===============================================
+-> third party lib
+-> remove lot of biolder plate code and marshal the rows to structs
+-> in findall: used rows.scan() to scan the row and append them to customer slice 
+-> in sqlx: 
+     sqlx.StructScan(sqlx.rows,interface) ->(rows,&customer) -> it will scan and append the rows into customer 
+      make sure the domain struct paramets are same to with database -> it will not cretae json paramter like `db:"customer_id"
+
+
+sqlx.client:
+          sqlx.open()
+          in strcut:
+                    *sqlx.DB 
+
+sqlx.Select() -> retrive the rows from the database and marshling them our domain object.
+     d.Client.select(destination interface{},query string,args ...interface{})
+     --> retrive and marshaling in one single call
+
+in  FindbyId(id string):
+     -> in place of query row and scan ,use d.client.Get(destination interface{},query string,args ...interface{})
+     retunr err if the result set is empty
+
+
+
+
+Data transfer Object:  (DTO)
+==============================
+     -> dto to communication between the USER and BUSINESS side ,
+     -> it implements modularity and helps in preventing  the domain objects scattering all over the layers.
+Structure:
+ USERSIDE           BUSINESS SIDE           SERVER 
+     |--------------->   |       2.Domain      |
+     |     1. DTO        |  --------------->   |
+     |                   |  <---------------   |
+     | <---------------  |       3.Domain      |
+            4.DTO
+
+
+
+  => Till now ,we are using domain objects as DTO.
+=> TO MAKE CLEAR, we are not supposed to expose domain objects to outside world
+
+func (s DefaultCustomerService) GetCustomersbyId(id string) (*domain.Customer,*errs.AppError){
+	return s.repo.FindbyId(id)
+}
+
+instead of returning directly ,keep them in separare variable and transform domain object to the DTO.
+=> after that our GetCustomer will be returning the DTo's from here
+
+**************
+=> domain object map with server side layer
+=> DTO is mapped with user side layer 
+*******************
+creating a DTO of customerResponse eact copy of domain.
+
+our primary port(service interface):
+====================================
+     for GetAllCustomers() function will return the []domain.customer slice.
+     we have to return the Dto here.
+     => data retrinve from findAll ,save in one variable and based on that data => copy the data into our dto.
+     => here created a function ToDto() => to add the data to dto  in domain 
+     calling that toDto with response data => (c.ToDto()) by making for loop ,if more than one data if not ,
+     if more than one data , append the data to response return response and nil 
+
+
+
+
+Application configuration:
+=========================
+Defining the hardcoded values for servername=localhost adn port:3036 and for db configuration as well.
+In real time, we need to provide the environment variables not hardcoded values.
+
+in app.go:
+     log.Fatal(http.ListenAndServe(":8080", router))
+     -> we need to in terminal SERVER_ADDRESS=localhost
+                   SERVER_PORT=3036
+                    in app.go:
+                              address := os.Getenv("SERVER_ADDRESS")
+                              port := os.Getenv("SERVER_PORT")
+
+                         log.Fatal(http.ListenAndServe(fmt.Sprintf(%s:%s,address,port),router))
+in CustomerRepositrydbsqlx:
+     client, err := sqlx.Open("mysql", "root:root@tcp(localhost:3306)/banking")
+     DB_USER = "root"
+     DB_PASSWD ="root"
+     DB_ADDR="localhost"
+     DB_PORT ="3036"
+     DB_NAME ="banking"
+     db_user os.Getenv("DB_USER")
+
+     datasource = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",db_user,like that)
+
+in app.go:
+==========
+ -> we need to make sanity check -> if any env variable is missing we should not start our application
+     func sanityCheck(){
+          if os.GetEnv("SERVER_ADDRESS")=""||
+          os.GetEnv("SERVER_PORT")=""{
+               Log.Fatal("environment variable is not defined")
+          }
+     }
+
+
+setting environment variable configuration:
+powershell:
+     $env:SERVER_ADDRESS="localhost"
+     $env:SERVER_PORT="8282"
+     $env:DB_USER="root"
+     $env:DB_PASSWD=""
+     $env:DB_ADDR="localhost"
+     $env:DB_PORT="3306"
+     $env:DB_NAME="banking"
+
+linux/ubuntu:
+          export SERVER_ADDRESS="localhost"
+          export SERVER_PORT="8282"
+          export DB_USER="rakesh"
+          export DB_PASSWD="rakesh"
+          export DB_ADDR="localhost"
+          export DB_PORT="3306"
+          export DB_NAME="banking"
+
+
+New Bank Acccount:
+====================
+part1: BUSINESS and server side
+     =>post api -> create a new bank account for existing customer
+
+     Q:  write a API for creating a new bank account for exisitng customer
+     Acceptance critertia:
+          - A new can only opened with minimum deposit of 5000.0
+          - Account can only be of checking or saving type 
+          - IN CASE of an unexpected error  ,API should return status 500(internal server error ) along with error message 
+          - The api should return  a new account id,when a new account is opened with status code a 201(created)
+
+     Solution:
+    1. type AccountRepositorydbsqlx struct {
+	client *sqlx.DB
+     }
+     created strcut with having sqlx.DB as filed 
+
+     2.created save function haing account as parameter and  return *account pointer and errror.
+          -> insert the values to create a account 
+          -> sqlx.Exec to Execute the query (query,parameters)
+          -> handle the error  
+          -> return the result with LastInsertId and rowsAfftected 
+          -> get the LastInsertId and assign to Acccount pointer and convert the id to string before assign 
+          -> return the Account
+
+
+     3. create a helper function like in CustomerRepositorydbsqlx as NewCustomerRepositorydbsqlx()
+          NewAccountRepositorydbsqlx(dbClient *sqlx.DB){
+               return AccountRepositorydbsqlx{dbClient}
+          }
+     
+     4.Here the Database connection pool has to only one time for an application
+          take the code inside the NewAccountRepositorydbsqlx   to app.go 
+          and create function getdbClient() asggin to dbClient variable.
+
+     5.func getdbClient(){
+          code for Connection pool
+     }
+     6.make the wiring by pass a variable insdie the NewCustomerRepositorydbsqlx(dbClient) for dbConnection 
+     7.in func NewAccountRepositorydbsqlx(dbClient),
+               return CustomerRepositorydbsqlx(dbClient)
+
+     8.scatter the wiring like :
+          dbClient := getdbClient()
+          crdbsqlx :=domain.NewCustomerRepositorydbsqlx(dbClient)
+          ardbsqlx :=domain.NewAccountRepositorydbsqlx(dbClient)
+          customerhandlers := CustomerHandlers{service: service.NewCustomerService(crdbsqlx)}
+(In this we creating domain object and server side Component)
+=> This part is ending with connection the Secondary port and business side.
+Part2:
+     User and business  Side 
+     => In this we will be primary port (service Component) and  handler Dto and validation.
+     
+     1. in app.go :
+     Create a Accounthandler  and set the routes(/customers/{customer_id:[0-9]+}/account) as post request to create account.
+     call the newAccount() in account handler.
+     2.create accounthandler like customerhandler :
+          ->create function accounthandler()
+          -> get ther vars paramter(customerId) from url using mux 
+          -> decode the request data into dto.NewAccountRequest 
+          -> it will return the err and if handle  the err 
+          -> else:
+               assign ther vars customerId to dto.NewAccountRequest 
+               and pass to service.NewAccount()
+               -> handle the appError 
+                    else:
+                         write response
+
+     3.in service:
+          -> create Accountservice  like customerService 
+          -> in NewAccount():
+                    1.first the validate request the amount and accounttype  and based on fail case ther return the error
+                         with code of 422 ,unprocessable entity
+                    2.convert the dto object to domain object  with required fileds 
+                    3.sent this domain object to AccountRepositorydbsqlx
+                    4.return give a *domain.Account 
+                    5.handle the error  
+                    6.convert reponse of the domain object to dto object by calling ToNewAccountReponseDto()
+                    7.reponse will have only account_id ,assgin the feild value to feild accountID
+                    8.save in resp variable and return reference of &resp 
+                    9.if success ,it will return the 201 statusCreated code 
+                    10.if not ,return the 500 unexpected error 
+                    
+
+Securing Application:
+======================
+     Authentication and authorization and jwt tokens and RBAC
+
+                                        1.login request 
+                                        | --------------> |
+                                   user |<---------------|authserver 
+                              ^  |      2.token             ^ |
+ 3. Request resource with     |  |3       response        4 | |  4.verift token and request 
+          token              6|  |                          | |5  5.token verification response 
+                              |  |----> |Resource server --| |
+   6.reponse                   --------  |(banking)     <-------|
+
+
+
+   JWT: (json web tokekn)
+
+   => REST API are stateless ,they donot maintain any state 
+   -> every api call coming to server should be self contained (i.e it should contain infomation for its authorization and along with its data)
+   => Every call to the server is considered an independent call it should be verified every time 
+   => becuase we needs machanisam whihc is very fast and effective =>JWT tokens  are very well suited.
+
+     Token:
+          Header.Payload.Signature
+
+
+
+Routes:
+     admin can do all    
+          Get all customers   
+          Get customer by id
+          Create new Account 
+          Make a transaction
+
+     user role can do
+          Get customer by id 
+          Make a transaction
+

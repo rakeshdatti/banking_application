@@ -1,0 +1,13 @@
+mode: set
+github.com/rakesh/banking/app/dto/accountRequest.go:15.54,16.21 1 1
+github.com/rakesh/banking/app/dto/accountRequest.go:16.21,18.3 1 1
+github.com/rakesh/banking/app/dto/accountRequest.go:19.2,19.96 1 1
+github.com/rakesh/banking/app/dto/accountRequest.go:19.96,21.3 1 1
+github.com/rakesh/banking/app/dto/accountRequest.go:22.2,22.12 1 0
+github.com/rakesh/banking/app/dto/transactionRequest.go:16.67,18.2 1 1
+github.com/rakesh/banking/app/dto/transactionRequest.go:19.64,21.2 1 1
+github.com/rakesh/banking/app/dto/transactionRequest.go:23.58,24.71 1 1
+github.com/rakesh/banking/app/dto/transactionRequest.go:24.71,26.3 1 1
+github.com/rakesh/banking/app/dto/transactionRequest.go:27.2,27.18 1 1
+github.com/rakesh/banking/app/dto/transactionRequest.go:27.18,29.3 1 1
+github.com/rakesh/banking/app/dto/transactionRequest.go:30.2,30.12 1 0

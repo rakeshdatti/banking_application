@@ -1,0 +1,52 @@
+
+
+Go project
+
+NewCustomerRepositorydb(): Creates a DB connection and returns a CustomerRepositorydb (implements CustomerRepository interface).
+NewCustomerService(...): Takes the repository and returns a DefaultCustomerService (implements CustomerService interface).
+CustomerHandlers{...}: Takes the service and creates a handler that can be used in HTTP routes.
+➡️ This is dependency injection: each layer depends on an abstraction (interface), not a concrete
+
+2. Handler Layer (handlers.go)
+
+func(ch *CustomerHandlers) getAllCustomers(w http.ResponseWriter, r *http.Request)
+This is the HTTP handler for /customers.
+It calls ch.service.GetAllCustomers() to get data.
+Based on the Content-Type header, it returns JSON or XML.
+➡️ This layer is responsible for HTTP logic only (not business or DB logic).
+
+3. Service Layer (customerservice.go)
+
+This is the business logic layer.
+It calls repo.FindAll() to get data from the repository.
+➡️ This layer can contain validation, transformation, or other business rules.
+
+4. Domain Layer (customer.go, customerdb.go)
+customer.go
+
+Defines an interface for customer data access.
+
+customerdb.go
+Implements the CustomerRepository interface.
+Connects to MySQL and queries the customers table.
+➡️ This layer handles data persistence and database logic.
+
+This is a clean architecture or hexagonal architecture approach. Benefits:
+
+Separation of concerns: Each layer has a single responsibility.
+Testability: You can mock interfaces for unit testing.
+Flexibility: You can swap out the DB layer (e.g., use a stub or another DB) without changing business logic.
+Maintainability: Easier to manage and scale.
+
+Flow:
+HTTP Request → /customers
+Router → Calls CustomerHandlers.getAllCustomers
+Handler → Calls CustomerService.GetAllCustomers
+Service → Calls CustomerRepositorydb.FindAll
+Repository → Queries MySQL and returns data
+Handler → Encodes data as JSON/XML and sends HTTP response
+
+
+
+=> business logic is implementing is the one which implementing the  primary Port(service component)
+ 

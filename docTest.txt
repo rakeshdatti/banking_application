@@ -1,0 +1,67 @@
+
+Testing:
+=======
+(t *testing.T)
+//Arrange
+//Act
+//Assert
+
+
+MockGen:
+mock is sopisticated version,it is also a type of stub ,to test out  expections and 
+1.Gomock lib
+2.mockgen tool
+
+Define tag insdie customerService: for create go gerenate ,invoke the mock gen tool 
+
+
+//go:generate mockgen -destination=../mocks/service/mockCustomerService.go -package=service github.com/rakesh/banking/app/service CustomerService
+to run : go generate ./...
+
+
+to install mockgen:
+go env
+check for GOBIN AND GOPATH
+SET GOPATH="C:\Users\Datti.rakesh\go"
+SET GOBIN="C:\Users\Datti.rakesh\go\bin"
+INSTALL MOCKGEN 
+ go install github.com/golang/mock/mockgen@latest
+#Get-ChildItem "C:\Users\Datti.rakesh\go\bin"
+ADD THIS ENV PATH"
+      $env:Path +=",C:\Users\Datti.rakesh\go\bin"
+CHECK THE MOCKGEN -version
+     mockgen -version
+
+if not working use this:
+ $env:PATH = "C:\Users\Datti.rakesh\go\bin;" + $env:PATH
+
+
+
+//Arrange part
+	// steps for mocksetup:
+	// 	1.define mock controller 
+	// 	2.lsit of customers 
+	// 	3.define the handler 
+	// 	4.injected mock service to it
+	// 	5.create new router and registered enpoint and handler with it
+	// 	6.create http request
+
+	//Act part
+// 	1.httptest.NewRecorder() -> return the recorder 
+// 		//it is implemention of response writer 
+// 		//we need to pass the record into serverhttp
+// 		//it will record all our responses
+// 	2.router.Servehttp(recorder,httprequest)
+		//once the is exce , it will send httprequest to out endpoint
+	
+	//Aseert
+	// 3.check the recorder statusCode is ok or not if not return error
+
+
+
+Write testing for Service layer:
+AccountService:
+	1.should_return_a_validation_error_response_when_request_is_not_validated
+	2.should_return_a_error_from_server_side_if_the_new_account_cannot_be_Created
+	3.should_return_new_account_response_when_Account_is_created_sucessfully
+	

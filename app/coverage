@@ -1,0 +1,25 @@
+mode: set
+github.com/rakesh/banking/app/app/accounthandler.go:17.77,22.13 5 1
+github.com/rakesh/banking/app/app/accounthandler.go:22.13,24.3 1 0
+github.com/rakesh/banking/app/app/accounthandler.go:24.7,27.19 3 1
+github.com/rakesh/banking/app/app/accounthandler.go:27.19,29.4 1 1
+github.com/rakesh/banking/app/app/accounthandler.go:29.8,31.4 1 1
+github.com/rakesh/banking/app/app/accounthandler.go:39.82,44.63 5 1
+github.com/rakesh/banking/app/app/accounthandler.go:44.63,46.3 1 0
+github.com/rakesh/banking/app/app/accounthandler.go:46.7,50.19 4 1
+github.com/rakesh/banking/app/app/accounthandler.go:50.19,52.4 1 1
+github.com/rakesh/banking/app/app/accounthandler.go:52.8,54.4 1 1
+github.com/rakesh/banking/app/app/app.go:16.14,68.2 15 0
+github.com/rakesh/banking/app/app/app.go:70.29,81.16 8 0
+github.com/rakesh/banking/app/app/app.go:81.16,82.13 1 0
+github.com/rakesh/banking/app/app/app.go:84.2,87.15 4 0
+github.com/rakesh/banking/app/app/app.go:90.20,92.122 1 0
+github.com/rakesh/banking/app/app/app.go:92.122,94.3 1 0
+github.com/rakesh/banking/app/app/customerhandlers.go:31.85,38.13 3 1
+github.com/rakesh/banking/app/app/customerhandlers.go:38.13,40.3 1 1
+github.com/rakesh/banking/app/app/customerhandlers.go:40.7,43.3 2 1
+github.com/rakesh/banking/app/app/customerhandlers.go:77.85,81.16 4 1
+github.com/rakesh/banking/app/app/customerhandlers.go:81.16,87.3 1 1
+github.com/rakesh/banking/app/app/customerhandlers.go:87.8,92.3 1 1
+github.com/rakesh/banking/app/app/customerhandlers.go:97.68,100.52 3 1
+github.com/rakesh/banking/app/app/customerhandlers.go:100.52,104.3 2 0
