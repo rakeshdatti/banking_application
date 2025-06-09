@@ -1,0 +1,15 @@
+1.built a Docker image for your Go app.
+
+2.ran the app interactively; it started successfully but you stopped it.
+
+3. tried to run it detached, but the container exited with error code 2.
+
+4.Logs show app started but exited quickly without errors.
+
+5.Container with the same name existed, causing conflict.
+
+---
+commands:
+sudo docker build -t banking-app .
+sudo docker run --env-file .env -p 8282:8282 --name banking-container banking-app
+sudo docker logs banking-container
